@@ -10,7 +10,8 @@ print(r"""
 ░█▀▄░░█░░█░█░█░█░█░░░█░█░█▀▄░█░░
 ░▀▀░░▀▀▀░▀░▀░▀▀▀░▀▀▀░▀▀▀░▀░▀░▀▀▀
 """)
-x = 'Enter Api:'
+print("            Submit URL Bing.com ")
+x = 'Enter Api: '
 bing_api_key =  input(x)
 r = 'Enter URL:'
 l = 'Url List: '

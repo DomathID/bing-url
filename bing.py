@@ -97,4 +97,18 @@ def main_menu():
         sys.exit(0)
     else:
         print(colored("Opsi tidak valid. Silakan pilih opsi yang valid.", "yellow"))
-main_menu()
+
+def check_api_key_file():
+    if not os.path.exists("api.txt"):
+        print("File api.txt tidak ditemukan.")
+        sys.exit(1)
+
+def main():
+    check_api_key_file()
+    api_key = read_api_key()
+    main_menu()
+
+if __name__ == "__main__":
+    main()
+
+

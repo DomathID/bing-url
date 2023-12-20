@@ -3,9 +3,20 @@ import json
 import os
 import sys
 from termcolor import colored
+from xml.etree import ElementTree as ET
+from urllib.parse import urlparse
 
 ip = requests.get("https://api.ipify.org").text
 
+def get_urls_from_sitemap(sitemap_url, limit=None):
+    response = requests.get(sitemap_url)
+    root = ET.fromstring(response.content)
+    urls = [child.text for child in root.findall(".//{http://www.sitemaps.org/schemas/sitemap/0.9}url/{http://www.sitemaps.org/schemas/sitemap/0.9}loc")]
+
+    if limit is not None:
+        urls = urls[:limit]
+
+    return urls
 
 def submit_single_url(api_key, site_url, page_url):
     url = f"https://ssl.bing.com/webmaster/api.svc/json/SubmitUrl?apikey={api_key}"
@@ -17,7 +28,6 @@ def submit_single_url(api_key, site_url, page_url):
     else:
         print(colored("Gagal mengirim permintaan.", "red"))
 
-
 def submit_batch_urls(api_key, site_url, url_list):
     url = f"https://ssl.bing.com/webmaster/api.svc/json/SubmitUrlbatch?apikey={api_key}"
     headers = {"Content-Type": "application/json; charset=utf-8"}
@@ -28,7 +38,6 @@ def submit_batch_urls(api_key, site_url, url_list):
     else:
         print(colored("Gagal mengirim permintaan.", "red"))
 
-
 def read_api_key():
     try:
         with open("api.txt", "r") as file:
@@ -37,7 +46,6 @@ def read_api_key():
     except FileNotFoundError:
         print("File api.txt tidak ditemukan.")
         sys.exit(1)
-
 
 def get_quota(api_key, site_url):
     url = f"https://ssl.bing.com/webmaster/api.svc/json/GetUrlSubmissionQuota?siteUrl={site_url}&apikey={api_key}"
@@ -51,6 +59,8 @@ def get_quota(api_key, site_url):
     else:
         print(colored("Gagal mendapatkan kuota.", "red"))
 
+# ...
+
 def main_menu():
     banner = """
     ██████╗ ██╗███╗   ██╗██████╗ ███████╗██╗  ██╗
@@ -59,7 +69,7 @@ def main_menu():
     ██╔══██╗██║██║╚██╗██║██║  ██║██╔══╝   ██╔██╗ 
     ██████╔╝██║██║ ╚████║██████╔╝███████╗██╔╝ ██╗
     ╚═════╝ ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝
-       """
+    """
     print(banner)
     print(colored("Your IP: ", "blue"), colored(ip, "green"))
     print(colored("Author:", "blue"), colored("DomathID", "green"))
@@ -68,9 +78,10 @@ def main_menu():
     print(colored("[1]", "magenta"), "Submit URL Single")
     print(colored("[2]", "magenta"), "Submit URL dalam Batch")
     print(colored("[3]", "magenta"), "Cek Kuota")
-    print(colored("[4]", "magenta"), "Keluar")
+    print(colored("[4]", "magenta"), "Grab dari Sitemap")
+    print(colored("[5]", "magenta"), "Keluar")
 
-    choice = input("Pilih opsi (1/2/3/4): ")
+    choice = input("Pilih opsi (1/2/3/4/5): ")
     if choice == "1":
         api_key = read_api_key()
         site_url = input("URL situs: ")
@@ -93,6 +104,12 @@ def main_menu():
         site_url = input("URL situs: ")
         get_quota(api_key, site_url)
     elif choice == "4":
+        api_key = read_api_key()
+        sitemap_url = input("Masukkan URL sitemap: ")
+        url_list = get_urls_from_sitemap(sitemap_url, limit=100) 
+        print(f"\nMengambil {len(url_list)} URL dari sitemap (maksimal 100).\n")
+        submit_batch_urls(api_key, sitemap_url, url_list)
+    elif choice == "5":
         print("Keluar dari Tools")
         sys.exit(0)
     else:
